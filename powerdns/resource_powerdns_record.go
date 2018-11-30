@@ -14,6 +14,9 @@ func resourcePDNSRecord() *schema.Resource {
 		Read:   resourcePDNSRecordRead,
 		Delete: resourcePDNSRecordDelete,
 		Exists: resourcePDNSRecordExists,
+		Importer: &schema.ResourceImporter{
+			State: resourcePowerDNSRecordImportState,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"zone": {
@@ -87,7 +90,6 @@ func resourcePDNSRecordCreate(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("Failed to delete PowerDNS Record: %s", err)
 		}
-
 		d.SetId(rrSet.Id())
 	}
 
