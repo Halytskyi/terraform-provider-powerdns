@@ -16,11 +16,11 @@ func TestAccImportPDNSRecord_A(t *testing.T) {
 
 		expectedName := "redis.sysa.xyz."
 		expectedZone := "sysa.xyz"
-		expectedValue1 := "1.1.1.1"
-		expectedValue2 := "2.2.2.2"
+		expectedRecord1 := "1.1.1.1"
+		expectedRecord2 := "2.2.2.2"
 		expectedType := "A"
 		expectedTTL := "60"
-		return compareState(s[0], expectedName, expectedZone, expectedValue1, expectedValue2, expectedType, expectedTTL)
+		return compareState(s[0], expectedName, expectedZone, expectedRecord1, expectedRecord2, expectedType, expectedTTL)
 	}
 
 	resourceName := "powerdns_record.test-a"
@@ -44,7 +44,7 @@ func TestAccImportPDNSRecord_A(t *testing.T) {
 	})
 }
 
-func compareState(recordState *terraform.InstanceState, expectedName, expectedZone, expectedValue1, expectedValue2, expectedType, expectedTTL string) error {
+func compareState(recordState *terraform.InstanceState, expectedName, expectedZone, expectedRecord1, expectedRecord2, expectedType, expectedTTL string) error {
 	if recordState.Attributes["zone"] != expectedZone {
 		return fmt.Errorf("expected zone of %s, %s received",
 			expectedZone, recordState.Attributes["zone"])
@@ -53,13 +53,13 @@ func compareState(recordState *terraform.InstanceState, expectedName, expectedZo
 		return fmt.Errorf("expected name of %s, %s received",
 			expectedName, recordState.Attributes["name"])
 	}
-	if recordState.Attributes["records.218290772"] != expectedValue1 {
-		return fmt.Errorf("expected value of %s, %s received",
-			expectedValue1, recordState.Attributes["records.218290772"])
+	if recordState.Attributes["records.218290772"] != expectedRecord1 {
+		return fmt.Errorf("expected record of %s, %s received",
+			expectedRecord1, recordState.Attributes["records.218290772"])
 	}
-	if recordState.Attributes["records.3758446074"] != expectedValue2 {
-		return fmt.Errorf("expected value of %s, %s received",
-			expectedValue2, recordState.Attributes["records.3758446074"])
+	if recordState.Attributes["records.3758446074"] != expectedRecord2 {
+		return fmt.Errorf("expected record of %s, %s received",
+			expectedRecord2, recordState.Attributes["records.3758446074"])
 	}
 	if recordState.Attributes["type"] != expectedType {
 		return fmt.Errorf("expected type of %s, %s received",
