@@ -20,7 +20,8 @@ func TestAccImportPDNSRecord_A(t *testing.T) {
 		expectedRecord2 := "2.2.2.2"
 		expectedType := "A"
 		expectedTTL := "60"
-		return compareState(s[0], expectedName, expectedZone, expectedRecord1, expectedRecord2, expectedType, expectedTTL, "")
+		expectedSetPTR := ""
+		return compareState(s[0], expectedName, expectedZone, expectedRecord1, expectedRecord2, expectedType, expectedTTL, expectedSetPTR)
 	}
 
 	resourceName := "powerdns_record.test-a"
