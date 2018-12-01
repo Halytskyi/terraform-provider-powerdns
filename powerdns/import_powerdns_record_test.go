@@ -20,7 +20,7 @@ func TestAccImportPDNSRecord_A(t *testing.T) {
 		expectedRecord2 := "2.2.2.2"
 		expectedType := "A"
 		expectedTTL := "60"
-		return compareState(s[0], expectedName, expectedZone, expectedRecord1, expectedRecord2, expectedType, expectedTTL)
+		return compareState(s[0], expectedName, expectedZone, expectedRecord1, expectedRecord2, expectedType, expectedTTL, "")
 	}
 
 	resourceName := "powerdns_record.test-a"
@@ -44,7 +44,44 @@ func TestAccImportPDNSRecord_A(t *testing.T) {
 	})
 }
 
-func compareState(recordState *terraform.InstanceState, expectedName, expectedZone, expectedRecord1, expectedRecord2, expectedType, expectedTTL string) error {
+func TestAccImportPDNSRecord_A_WithPTR(t *testing.T) {
+	checkFn := func(s []*terraform.InstanceState) error {
+		if len(s) != 1 {
+			return fmt.Errorf("expected 1 state: %#v", s)
+		}
+
+		expectedName := "redis-ptr.sysa.xyz."
+		expectedZone := "sysa.xyz"
+		expectedRecord1 := "1.1.1.1"
+		expectedRecord2 := "2.2.2.2"
+		expectedType := "A"
+		expectedTTL := "60"
+		expectedSetPTR := "true"
+		return compareState(s[0], expectedName, expectedZone, expectedRecord1, expectedRecord2, expectedType, expectedTTL, expectedSetPTR)
+	}
+
+	resourceName := "powerdns_record.test-a-ptr"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckPDNSRecordDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testPDNSRecordConfigAWithPTR,
+			},
+			resource.TestStep{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateId:     "redis-ptr.sysa.xyz.:::A:::true",
+				ImportStateCheck:  checkFn,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func compareState(recordState *terraform.InstanceState, expectedName, expectedZone, expectedRecord1, expectedRecord2, expectedType, expectedTTL string, expectedSetPTR string) error {
 	if recordState.Attributes["zone"] != expectedZone {
 		return fmt.Errorf("expected zone of %s, %s received",
 			expectedZone, recordState.Attributes["zone"])
@@ -69,6 +106,9 @@ func compareState(recordState *terraform.InstanceState, expectedName, expectedZo
 		return fmt.Errorf("expected TTL of %s, %s received",
 			expectedTTL, recordState.Attributes["ttl"])
 	}
-
+	if recordState.Attributes["set_ptr"] != expectedSetPTR {
+		return fmt.Errorf("expected set_ptr of %s, %s received",
+			expectedSetPTR, recordState.Attributes["set_ptr"])
+	}
 	return nil
 }

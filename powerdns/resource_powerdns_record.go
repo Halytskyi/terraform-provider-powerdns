@@ -1,9 +1,8 @@
 package powerdns
 
 import (
-	"log"
-
 	"fmt"
+	"log"
 
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -50,6 +49,13 @@ func resourcePDNSRecord() *schema.Resource {
 				ForceNew: true,
 				Set:      schema.HashString,
 			},
+
+			"set_ptr": {
+				Type:     schema.TypeBool,
+				Required: false,
+				Optional: true,
+				ForceNew: true,
+			},
 		},
 	}
 }
@@ -66,11 +72,13 @@ func resourcePDNSRecordCreate(d *schema.ResourceData, meta interface{}) error {
 	zone := d.Get("zone").(string)
 	ttl := d.Get("ttl").(int)
 	recs := d.Get("records").(*schema.Set).List()
+	set_ptr := d.Get("set_ptr").(bool)
 
 	if len(recs) > 0 {
 		records := make([]Record, 0, len(recs))
 		for _, recContent := range recs {
-			records = append(records, Record{Name: rrSet.Name, Type: rrSet.Type, TTL: ttl, Content: recContent.(string)})
+			records = append(records, Record{Name: rrSet.Name, Type: rrSet.Type, TTL: ttl,
+				SetPTR: set_ptr, Content: recContent.(string)})
 		}
 		rrSet.Records = records
 
