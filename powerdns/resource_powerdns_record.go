@@ -160,7 +160,7 @@ func resourcePDNSRecordDelete(d *schema.ResourceData, meta interface{}) error {
 					return fmt.Errorf("Error during check PTR record: %s, reason: %s", ptr_name, err)
 				}
 				if is_ptrRecord {
-					err := client.DeleteRecordSet(ptr_zone, ptr_name, "SetPTR")
+					err := client.DeleteRecordSet(ptr_zone, ptr_name, "PTR")
 					if err != nil {
 						return fmt.Errorf("Error deleting PTR record: %s, reason: %s", ptr_name, err)
 					}

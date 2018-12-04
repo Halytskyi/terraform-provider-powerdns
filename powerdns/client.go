@@ -324,9 +324,6 @@ func (client *Client) ReplaceRecordSet(zone string, rrSet ResourceRecordSet) (st
 
 // Deletes record set from Zone
 func (client *Client) DeleteRecordSet(zone string, name string, tpe string) error {
-	if tpe == "SetPTR" {
-		tpe = "PTR"
-	}
 	reqBody, _ := json.Marshal(zonePatchRequest{
 		RecordSets: []ResourceRecordSet{
 			{
