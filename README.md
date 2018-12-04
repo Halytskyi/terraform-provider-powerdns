@@ -45,6 +45,12 @@ $ cd $GOPATH/src/github.com/terraform-providers/terraform-provider-powerdns
 $ make build
 ```
 
+Build for specific OS
+
+```
+env GOOS=linux GOARCH=amd64 go build
+```
+
 Using the provider
 ----------------------
 ## Fill in for each provider
