@@ -3,6 +3,7 @@ package powerdns
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -129,12 +130,44 @@ func resourcePDNSRecordRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourcePDNSRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*Client)
+	is_set_ptr := d.Get("set_ptr").(bool)
+	recs := d.Get("records").(*schema.Set).List()
 
 	log.Printf("[INFO] Deleting PowerDNS Record: %s", d.Id())
 	err := client.DeleteRecordSetByID(d.Get("zone").(string), d.Id())
 
 	if err != nil {
 		return fmt.Errorf("Error deleting PowerDNS Record: %s", err)
+	}
+
+	if is_set_ptr {
+		for _, ip := range recs {
+			ip_octets := strings.Split(ip.(string), ".")
+			ptr_name := fmt.Sprintf("%s.%s.%s.%s.in-addr.arpa.", ip_octets[3], ip_octets[2], ip_octets[1], ip_octets[0])
+			log.Printf("[INFO] Deleting PTR PowerDNS Record: %s", ptr_name)
+			for i := 0; i < 3; i++ {
+				var ptr_zone_prefix string
+				if i == 0 {
+					ptr_zone_prefix = fmt.Sprintf("%s.%s.%s", ip_octets[2], ip_octets[1], ip_octets[0])
+				} else if i == 1 {
+					ptr_zone_prefix = fmt.Sprintf("%s.%s", ip_octets[1], ip_octets[0])
+				} else if i == 2 {
+					ptr_zone_prefix = ip_octets[0]
+				}
+				ptr_zone := fmt.Sprintf("%s.in-addr.arpa", ptr_zone_prefix)
+				is_ptrRecord, err := client.RecordExists(ptr_zone, ptr_name, "PTR")
+				if err != nil {
+					return fmt.Errorf("Error during check PTR record: %s, reason: %s", ptr_name, err)
+				}
+				if is_ptrRecord {
+					err := client.DeleteRecordSet(ptr_zone, ptr_name, "SetPTR")
+					if err != nil {
+						return fmt.Errorf("Error deleting PTR record: %s, reason: %s", ptr_name, err)
+					}
+					break
+				}
+			}
+		}
 	}
 
 	return nil
